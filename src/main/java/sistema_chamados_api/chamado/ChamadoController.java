@@ -15,26 +15,22 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 public class ChamadoController {
 
+    private final ChamadoService chamadoService;
+
+    public ChamadoController(ChamadoService chamadoService) {
+        this.chamadoService = chamadoService;
+    }
+
  @GetMapping
  public List<Chamado> listar() {
 
-     Chamado chamado = new Chamado(
-             1L,
-             "Computador não liga",
-             "O computador não apresenta nenhum sinal"
-     );
-
-     return List.of(chamado);
+     return chamadoService.listar();
  }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Chamado criar(@RequestBody CriarChamadoRequest request) {
-        return new Chamado(
-                2L,
-                request.titulo(),
-                request.descricao()
-        );
+        return chamadoService.criar(request);
     }
 
 }
