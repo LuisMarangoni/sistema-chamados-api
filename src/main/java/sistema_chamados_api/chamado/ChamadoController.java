@@ -4,6 +4,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 @RestController
@@ -13,6 +17,7 @@ public class ChamadoController {
 
  @GetMapping
  public List<Chamado> listar() {
+
      Chamado chamado = new Chamado(
              1L,
              "Computador não liga",
@@ -22,6 +27,14 @@ public class ChamadoController {
      return List.of(chamado);
  }
 
-
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Chamado criar(@RequestBody CriarChamadoRequest request) {
+        return new Chamado(
+                2L,
+                request.titulo(),
+                request.descricao()
+        );
+    }
 
 }
