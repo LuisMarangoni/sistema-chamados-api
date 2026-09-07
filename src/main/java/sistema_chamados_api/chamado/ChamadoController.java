@@ -8,7 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/chamados")
@@ -20,12 +23,21 @@ public class ChamadoController {
     public ChamadoController(ChamadoService chamadoService) {
         this.chamadoService = chamadoService;
     }
-
- @GetMapping
- public List<Chamado> listar() {
+    @GetMapping
+        public List<Chamado> listar() {
 
      return chamadoService.listar();
  }
+
+    @GetMapping("/{id}")
+     public ResponseEntity<Chamado> buscarPorId(@PathVariable Long id) {
+        Optional<Chamado> resultado = chamadoService.buscarPorId(id);
+
+        if (resultado.isPresent()) {
+            return ResponseEntity.ok(resultado.get());
+        }
+        return ResponseEntity.notFound().build();
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
