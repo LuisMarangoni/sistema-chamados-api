@@ -3,15 +3,20 @@ package sistema_chamados_api.chamado;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+
+
+import jakarta.validation.Valid;
+
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 
 import java.util.List;
@@ -46,7 +51,8 @@ public class ChamadoController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<Chamado> atualizarStatus(
             @PathVariable Long id,
-            @RequestBody AtualizarStatusRequest request
+            @Valid @RequestBody AtualizarStatusRequest request
+
     ) {
         Optional<Chamado> resultado =
                 chamadoService.atualizarStatus(id, request.status());
@@ -60,7 +66,9 @@ public class ChamadoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Chamado criar(@RequestBody CriarChamadoRequest request) {
+    public Chamado criar(
+            @Valid @RequestBody CriarChamadoRequest request
+    ) {
         return chamadoService.criar(request);
     }
 
@@ -77,7 +85,7 @@ public class ChamadoController {
     @PutMapping("/{id}")
     public ResponseEntity<Chamado> atualizar(
             @PathVariable Long id,
-            @RequestBody AtualizarChamadoRequest request
+            @Valid @RequestBody AtualizarChamadoRequest request
     ) {
         Optional<Chamado> resultado =
                 chamadoService.atualizar(id, request);
