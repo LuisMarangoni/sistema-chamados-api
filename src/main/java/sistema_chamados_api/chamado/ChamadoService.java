@@ -25,6 +25,18 @@ public class ChamadoService {
 
         return Optional.empty();
     }
+    public Optional<Chamado> atualizarStatus(Long id, StatusChamado novoStatus) {
+        Optional<Chamado> resultado = buscarPorId(id);
+
+        if (resultado.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Chamado chamado = resultado.get();
+        chamado.atualizarStatus(novoStatus);
+
+        return Optional.of(chamado);
+    }
 
     public Chamado criar(CriarChamadoRequest request) {
         Chamado chamado = new Chamado(

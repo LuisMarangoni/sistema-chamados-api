@@ -50,5 +50,9 @@ public class Chamado {
         return descricao;
     }
 
+    public void atualizarStatus(StatusChamado novoStatus) {
+        this.status = novoStatus;
+    }
+
 
 }
