@@ -54,5 +54,15 @@ public class Chamado {
         this.status = novoStatus;
     }
 
+    public void atualizarDados(
+            String novoTitulo,
+            String novaDescricao,
+            PrioridadeChamado novaPrioridade
+    ) {
+        this.titulo = novoTitulo;
+        this.descricao = novaDescricao;
+        this.prioridade = novaPrioridade;
+    }
+
 
 }

@@ -57,4 +57,25 @@ public class ChamadoService {
                 chamado -> chamado.getId().equals(id)
         );
     }
+
+    public Optional<Chamado> atualizar(
+            Long id,
+            AtualizarChamadoRequest request
+    ) {
+        Optional<Chamado> resultado = buscarPorId(id);
+
+        if (resultado.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Chamado chamado = resultado.get();
+
+        chamado.atualizarDados(
+                request.titulo(),
+                request.descricao(),
+                request.prioridade()
+        );
+
+        return Optional.of(chamado);
+    }
 }

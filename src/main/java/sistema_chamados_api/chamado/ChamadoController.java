@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
-
+import org.springframework.web.bind.annotation.PutMapping;
 
 
 import java.util.List;
@@ -70,6 +70,20 @@ public class ChamadoController {
 
         if (excluido) {
             return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<Chamado> atualizar(
+            @PathVariable Long id,
+            @RequestBody AtualizarChamadoRequest request
+    ) {
+        Optional<Chamado> resultado =
+                chamadoService.atualizar(id, request);
+
+        if (resultado.isPresent()) {
+            return ResponseEntity.ok(resultado.get());
         }
 
         return ResponseEntity.notFound().build();
