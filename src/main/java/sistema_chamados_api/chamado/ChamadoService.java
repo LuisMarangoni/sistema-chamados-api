@@ -1,7 +1,6 @@
 package sistema_chamados_api.chamado;
 
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,22 +8,21 @@ import java.util.Optional;
 @Service
 public class ChamadoService {
 
-    private final List<Chamado> chamados = new ArrayList<>();
-    private long proximoId = 1L;
+    private final ChamadoRepository chamadoRepository;
+
+    public ChamadoService(ChamadoRepository chamadoRepository) {
+        this.chamadoRepository = chamadoRepository;
+    }
 
     public List<Chamado> listar() {
-        return List.copyOf(chamados);
+        return chamadoRepository.findAll();
     }
 
     public Optional<Chamado> buscarPorId(Long id) {
-        for (Chamado chamado : chamados) {
-            if (chamado.getId().equals(id)) {
-                return Optional.of(chamado);
-            }
-        }
-
-        return Optional.empty();
+        return chamadoRepository.findById(id);
     }
+
+
     public Optional<Chamado> atualizarStatus(Long id, StatusChamado novoStatus) {
         Optional<Chamado> resultado = buscarPorId(id);
 
@@ -35,27 +33,27 @@ public class ChamadoService {
         Chamado chamado = resultado.get();
         chamado.atualizarStatus(novoStatus);
 
-        return Optional.of(chamado);
+        return Optional.of(chamadoRepository.save(chamado));
     }
 
     public Chamado criar(CriarChamadoRequest request) {
         Chamado chamado = new Chamado(
-                proximoId,
+                null,
                 request.titulo(),
                 request.descricao(),
                 request.prioridade()
         );
 
-        proximoId++;
-        chamados.add(chamado);
-
-        return chamado;
+        return chamadoRepository.save(chamado);
     }
 
     public boolean excluir(Long id) {
-        return chamados.removeIf(
-                chamado -> chamado.getId().equals(id)
-        );
+        if (!chamadoRepository.existsById(id)) {
+            return false;
+        }
+
+        chamadoRepository.deleteById(id);
+        return true;
     }
 
     public Optional<Chamado> atualizar(
@@ -76,6 +74,6 @@ public class ChamadoService {
                 request.prioridade()
         );
 
-        return Optional.of(chamado);
+        return Optional.of(chamadoRepository.save(chamado));
     }
 }
