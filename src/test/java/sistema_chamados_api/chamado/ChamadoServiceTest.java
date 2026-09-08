@@ -64,4 +64,34 @@ class ChamadoServiceTest {
         verify(chamadoRepository).findById(999L);
     }
 
+    @Test
+    void deveAtualizarStatusDoChamado() {
+        Chamado chamado = new Chamado(
+                "Sistema indisponível",
+                "Usuário não consegue acessar",
+                PrioridadeChamado.URGENTE
+        );
+
+        when(chamadoRepository.findById(1L))
+                .thenReturn(Optional.of(chamado));
+
+        when(chamadoRepository.save(chamado))
+                .thenReturn(chamado);
+
+        Optional<Chamado> resultado =
+                chamadoService.atualizarStatus(
+                        1L,
+                        StatusChamado.EM_ANDAMENTO
+                );
+
+        assertTrue(resultado.isPresent());
+        assertEquals(
+                StatusChamado.EM_ANDAMENTO,
+                resultado.get().getStatus()
+        );
+
+        verify(chamadoRepository).findById(1L);
+        verify(chamadoRepository).save(chamado);
+    }
+
 }
