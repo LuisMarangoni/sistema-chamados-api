@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+
+
 
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +62,17 @@ public class ChamadoController {
     @ResponseStatus(HttpStatus.CREATED)
     public Chamado criar(@RequestBody CriarChamadoRequest request) {
         return chamadoService.criar(request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        boolean excluido = chamadoService.excluir(id);
+
+        if (excluido) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
 }

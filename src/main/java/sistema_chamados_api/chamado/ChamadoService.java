@@ -51,4 +51,10 @@ public class ChamadoService {
 
         return chamado;
     }
+
+    public boolean excluir(Long id) {
+        return chamados.removeIf(
+                chamado -> chamado.getId().equals(id)
+        );
+    }
 }
