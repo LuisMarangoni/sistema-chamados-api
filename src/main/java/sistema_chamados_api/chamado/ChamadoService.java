@@ -38,7 +38,6 @@ public class ChamadoService {
 
     public Chamado criar(CriarChamadoRequest request) {
         Chamado chamado = new Chamado(
-                null,
                 request.titulo(),
                 request.descricao(),
                 request.prioridade()

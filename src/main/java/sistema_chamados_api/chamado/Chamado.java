@@ -54,18 +54,17 @@ public class Chamado {
     }
 
     public Chamado(
-            Long id,
             String titulo,
             String descricao,
             PrioridadeChamado prioridade
     ) {
-        this.id = id;
         this.titulo = titulo;
         this.descricao = descricao;
         this.status = StatusChamado.ABERTO;
         this.prioridade = prioridade;
         this.dataCriacao = LocalDateTime.now();
     }
+
     public Long getId() {
         return id;
     }
