@@ -30,7 +30,8 @@ public class ChamadoService {
         Chamado chamado = new Chamado(
                 proximoId,
                 request.titulo(),
-                request.descricao()
+                request.descricao(),
+                request.prioridade()
         );
 
         proximoId++;
