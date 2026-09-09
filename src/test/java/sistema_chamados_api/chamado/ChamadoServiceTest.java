@@ -16,7 +16,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
+import static org.mockito.ArgumentMatchers.eq;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -115,16 +117,25 @@ class ChamadoServiceTest {
                 1
         );
 
-        when(chamadoRepository.findAll(pageable))
-                .thenReturn(paginaEsperada);
+        when(chamadoRepository.findAll(
+                any(Specification.class),
+                eq(pageable)
+        )).thenReturn(paginaEsperada);
 
-        Page<Chamado> resultado = chamadoService.listar(pageable);
+        Page<Chamado> resultado = chamadoService.listar(
+                null,
+                null,
+                pageable
+        );
 
         assertEquals(1, resultado.getTotalElements());
         assertEquals(1, resultado.getContent().size());
         assertEquals("Erro de rede", resultado.getContent().getFirst().getTitulo());
 
-        verify(chamadoRepository).findAll(pageable);
+        verify(chamadoRepository).findAll(
+                any(Specification.class),
+                eq(pageable)
+        );
     }
 
 }

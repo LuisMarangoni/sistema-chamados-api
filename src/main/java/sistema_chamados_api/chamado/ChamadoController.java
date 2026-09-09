@@ -14,7 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-
+import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
 
 
@@ -38,6 +38,12 @@ public class ChamadoController {
 
     @GetMapping
     public Page<Chamado> listar(
+            @RequestParam(required = false)
+            StatusChamado status,
+
+            @RequestParam(required = false)
+            PrioridadeChamado prioridade,
+
             @PageableDefault(
                     size = 10,
                     sort = "dataCriacao",
@@ -45,7 +51,11 @@ public class ChamadoController {
             )
             Pageable pageable
     ) {
-        return chamadoService.listar(pageable);
+        return chamadoService.listar(
+                status,
+                prioridade,
+                pageable
+        );
     }
 
     @GetMapping("/{id}")
