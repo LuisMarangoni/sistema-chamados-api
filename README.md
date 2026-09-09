@@ -1,5 +1,7 @@
 # Sistema de Chamados API
 
+[![CI](https://github.com/LuisMarangoni/sistema-chamados-api/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisMarangoni/sistema-chamados-api/actions/workflows/ci.yml)
+
 API REST para gerenciamento de chamados técnicos, desenvolvida com Java e Spring Boot.
 
 O projeto permite criar, consultar, atualizar e excluir chamados, armazenando os dados em PostgreSQL.
