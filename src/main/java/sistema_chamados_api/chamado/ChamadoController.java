@@ -16,7 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
-
+import java.time.LocalDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,14 @@ public class ChamadoController {
             @RequestParam(required = false)
             PrioridadeChamado prioridade,
 
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime dataInicio,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime dataFim,
+
             @PageableDefault(
                     size = 10,
                     sort = "dataCriacao",
@@ -54,8 +63,11 @@ public class ChamadoController {
         return chamadoService.listar(
                 status,
                 prioridade,
+                dataInicio,
+                dataFim,
                 pageable
         );
+
     }
 
     @GetMapping("/{id}")

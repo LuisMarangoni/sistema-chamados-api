@@ -6,7 +6,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,4 +59,38 @@ class ChamadoRepositoryTest {
                 resultado.getContent().getFirst().getStatus()
         );
     }
+
+    @Test
+    void deveFiltrarChamadosPorPeriodoDeCriacao() {
+        LocalDateTime dataInicio =
+                LocalDateTime.now().minusMinutes(1);
+
+        Chamado chamado = new Chamado(
+                "Falha no servidor",
+                "Serviço indisponível",
+                PrioridadeChamado.URGENTE
+        );
+
+        chamadoRepository.saveAndFlush(chamado);
+
+        LocalDateTime dataFim =
+                LocalDateTime.now().plusMinutes(1);
+
+        Specification<Chamado> filtros = Specification.allOf(
+                ChamadoSpecifications.criadoAPartirDe(dataInicio),
+                ChamadoSpecifications.criadoAte(dataFim)
+        );
+
+        Page<Chamado> resultado = chamadoRepository.findAll(
+                filtros,
+                PageRequest.of(0, 10)
+        );
+
+        assertEquals(1, resultado.getTotalElements());
+        assertEquals(
+                "Falha no servidor",
+                resultado.getContent().getFirst().getTitulo()
+        );
+    }
+
 }

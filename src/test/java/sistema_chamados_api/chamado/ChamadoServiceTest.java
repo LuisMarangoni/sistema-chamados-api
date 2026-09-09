@@ -125,6 +125,8 @@ class ChamadoServiceTest {
         Page<Chamado> resultado = chamadoService.listar(
                 null,
                 null,
+                null,
+                null,
                 pageable
         );
 

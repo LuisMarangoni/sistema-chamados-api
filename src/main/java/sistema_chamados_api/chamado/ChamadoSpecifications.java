@@ -1,6 +1,9 @@
 package sistema_chamados_api.chamado;
 
 import org.springframework.data.jpa.domain.Specification;
+import java.time.LocalDateTime;
+
+
 
 public final class ChamadoSpecifications {
 
@@ -31,4 +34,33 @@ public final class ChamadoSpecifications {
                         prioridade
                 );
     }
+
+    public static Specification<Chamado> criadoAPartirDe(
+            LocalDateTime dataInicio
+    ) {
+        if (dataInicio == null) {
+            return Specification.unrestricted();
+        }
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(
+                        root.<LocalDateTime>get("dataCriacao"),
+                        dataInicio
+                );
+    }
+
+    public static Specification<Chamado> criadoAte(
+            LocalDateTime dataFim
+    ) {
+        if (dataFim == null) {
+            return Specification.unrestricted();
+        }
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(
+                        root.<LocalDateTime>get("dataCriacao"),
+                        dataFim
+                );
+    }
+
 }

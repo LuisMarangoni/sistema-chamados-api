@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.Optional;
-
+import java.time.LocalDateTime;
 
 @Service
 public class ChamadoService {
@@ -20,11 +20,15 @@ public class ChamadoService {
     public Page<Chamado> listar(
             StatusChamado status,
             PrioridadeChamado prioridade,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim,
             Pageable pageable
     ) {
         Specification<Chamado> filtros = Specification.allOf(
                 ChamadoSpecifications.comStatus(status),
-                ChamadoSpecifications.comPrioridade(prioridade)
+                ChamadoSpecifications.comPrioridade(prioridade),
+                ChamadoSpecifications.criadoAPartirDe(dataInicio),
+                ChamadoSpecifications.criadoAte(dataFim)
         );
 
         return chamadoRepository.findAll(filtros, pageable);
