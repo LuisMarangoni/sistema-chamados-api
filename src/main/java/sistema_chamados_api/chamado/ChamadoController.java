@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 
 import jakarta.validation.Valid;
 
@@ -19,7 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 
-import java.util.List;
+
 import java.util.Optional;
 
 @RestController
@@ -32,11 +35,18 @@ public class ChamadoController {
     public ChamadoController(ChamadoService chamadoService) {
         this.chamadoService = chamadoService;
     }
-    @GetMapping
-        public List<Chamado> listar() {
 
-     return chamadoService.listar();
- }
+    @GetMapping
+    public Page<Chamado> listar(
+            @PageableDefault(
+                    size = 10,
+                    sort = "dataCriacao",
+                    direction = Sort.Direction.DESC
+            )
+            Pageable pageable
+    ) {
+        return chamadoService.listar(pageable);
+    }
 
     @GetMapping("/{id}")
      public ResponseEntity<Chamado> buscarPorId(@PathVariable Long id) {

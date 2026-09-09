@@ -15,7 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 
 
@@ -92,6 +97,34 @@ class ChamadoServiceTest {
 
         verify(chamadoRepository).findById(1L);
         verify(chamadoRepository).save(chamado);
+    }
+
+    @Test
+    void deveListarChamadosComPaginacao() {
+        Pageable pageable = PageRequest.of(0, 2);
+
+        Chamado chamado = new Chamado(
+                "Erro de rede",
+                "Usuário sem acesso à internet",
+                PrioridadeChamado.ALTA
+        );
+
+        Page<Chamado> paginaEsperada = new PageImpl<>(
+                List.of(chamado),
+                pageable,
+                1
+        );
+
+        when(chamadoRepository.findAll(pageable))
+                .thenReturn(paginaEsperada);
+
+        Page<Chamado> resultado = chamadoService.listar(pageable);
+
+        assertEquals(1, resultado.getTotalElements());
+        assertEquals(1, resultado.getContent().size());
+        assertEquals("Erro de rede", resultado.getContent().getFirst().getTitulo());
+
+        verify(chamadoRepository).findAll(pageable);
     }
 
 }

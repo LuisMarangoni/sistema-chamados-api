@@ -1,7 +1,8 @@
 package sistema_chamados_api.chamado;
 
 import org.springframework.stereotype.Service;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 
@@ -14,8 +15,8 @@ public class ChamadoService {
         this.chamadoRepository = chamadoRepository;
     }
 
-    public List<Chamado> listar() {
-        return chamadoRepository.findAll();
+    public Page<Chamado> listar(Pageable pageable) {
+        return chamadoRepository.findAll(pageable);
     }
 
     public Optional<Chamado> buscarPorId(Long id) {
