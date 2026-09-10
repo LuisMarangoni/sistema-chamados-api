@@ -39,6 +39,8 @@ O projeto permite criar, consultar, atualizar e excluir chamados, armazenando os
 - Filtrar chamados por status, prioridade e período de criação
 - Executar API e PostgreSQL com Docker Compose
 - Executar testes HTTP com MockMvc
+- Vincular chamados a solicitantes por ID
+- Filtrar chamados por solicitante
 
 ## Estrutura
 
@@ -178,6 +180,7 @@ GET /chamados?prioridade=ALTA
 GET /chamados?status=ABERTO&prioridade=ALTA
 GET /chamados?dataInicio=2026-01-01T00:00:00
 GET /chamados?dataFim=2026-12-31T23:59:59
+GET /chamados?solicitanteId=1
 ```
 
 - `page`: número da página, iniciado em `0`.
@@ -186,6 +189,7 @@ GET /chamados?dataFim=2026-12-31T23:59:59
 - `status`: `ABERTO`, `EM_ANDAMENTO`, `RESOLVIDO` ou `FECHADO`.
 - `prioridade`: `BAIXA`, `MEDIA`, `ALTA` ou `URGENTE`.
 - `dataInicio` e `dataFim`: datas ISO, por exemplo `2026-09-09T18:00:00`.
+- `solicitanteId`: ID do usuário que abriu o chamado.
 
 ## Exemplo de criação
 
@@ -200,7 +204,8 @@ Content-Type: application/json
 {
   "titulo": "Computador não liga",
   "descricao": "O equipamento não apresenta nenhum sinal",
-  "prioridade": "ALTA"
+  "prioridade": "ALTA",
+  "solicitanteId": 1
 }
 ```
 
@@ -240,3 +245,4 @@ Os testes utilizam um banco H2 em memória. Portanto, não precisam da senha do 
 - DTOs separam os dados recebidos da entidade persistida.
 - O H2 isola o ambiente de testes do banco utilizado pela aplicação.
 - O Maven Wrapper mantém uma versão consistente do Maven entre ambientes.
+- O chamado armazena `solicitanteId`, sem chave estrangeira para a Users API, pois cada API mantém seu próprio banco de dados.
