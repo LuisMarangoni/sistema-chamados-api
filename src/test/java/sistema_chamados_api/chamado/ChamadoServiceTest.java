@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-
+import sistema_chamados_api.infra.UsersApiClient;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -32,6 +32,9 @@ class ChamadoServiceTest {
 
     @Mock
     private ChamadoRepository chamadoRepository;
+
+    @Mock
+    private UsersApiClient usersApiClient;
 
     @InjectMocks
     private ChamadoService chamadoService;
@@ -57,6 +60,7 @@ class ChamadoServiceTest {
         assertNotNull(resultado.getDataCriacao());
 
         verify(chamadoRepository).save(any(Chamado.class));
+        verify(usersApiClient).validarSolicitante(1L);
     }
 
     @Test

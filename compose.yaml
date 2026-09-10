@@ -24,6 +24,7 @@ services:
       DB_URL: jdbc:postgresql://database:5432/sistema_chamados
       DB_USERNAME: chamados_app
       DB_PASSWORD: ${DB_PASSWORD}
+      USERS_API_URL: http://host.docker.internal:8081
     ports:
       - "8080:8080"
     depends_on:

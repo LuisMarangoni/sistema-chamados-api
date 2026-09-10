@@ -1,6 +1,6 @@
 package sistema_chamados_api.chamado;
 
-
+import sistema_chamados_api.infra.UsersApiClient;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -12,9 +12,14 @@ import java.time.LocalDateTime;
 public class ChamadoService {
 
     private final ChamadoRepository chamadoRepository;
+    private final UsersApiClient usersApiClient;
 
-    public ChamadoService(ChamadoRepository chamadoRepository) {
+    public ChamadoService(
+            ChamadoRepository chamadoRepository,
+            UsersApiClient usersApiClient
+    ) {
         this.chamadoRepository = chamadoRepository;
+        this.usersApiClient = usersApiClient;
     }
 
     public Page<Chamado> listar(
@@ -55,6 +60,7 @@ public class ChamadoService {
     }
 
     public Chamado criar(CriarChamadoRequest request) {
+        usersApiClient.validarSolicitante(request.solicitanteId());
         Chamado chamado = new Chamado(
                 request.titulo(),
                 request.descricao(),

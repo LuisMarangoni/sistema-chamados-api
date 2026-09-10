@@ -5,6 +5,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.ProblemDetail;
+import sistema_chamados_api.chamado.SolicitanteNaoEncontradoException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,4 +36,16 @@ public class TratadorGlobalDeErros {
                 campos
         );
     }
+
+    @ExceptionHandler(SolicitanteNaoEncontradoException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ProblemDetail tratarSolicitanteNaoEncontrado(
+            SolicitanteNaoEncontradoException exception
+    ) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage()
+        );
+    }
+
 }

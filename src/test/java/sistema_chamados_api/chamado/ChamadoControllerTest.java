@@ -18,6 +18,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.doThrow;
+
+
 
 @WebMvcTest(ChamadoController.class)
 class ChamadoControllerTest {
@@ -99,6 +102,30 @@ class ChamadoControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.campos.solicitanteId")
                         .value("O solicitante é obrigatório"));
+    }
+
+    @Test
+    void deveRetornarNotFoundQuandoSolicitanteNaoExistir()
+            throws Exception {
+        doThrow(new SolicitanteNaoEncontradoException(999L))
+                .when(chamadoService)
+                .criar(any(CriarChamadoRequest.class));
+
+        mockMvc.perform(
+                        post("/chamados")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                {
+                                  "titulo": "Erro de rede",
+                                  "descricao": "Usuário sem acesso à internet",
+                                  "prioridade": "ALTA",
+                                  "solicitanteId": 999
+                                }
+                                """)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail")
+                        .value("Solicitante com ID 999 não foi encontrado"));
     }
 
 }

@@ -41,6 +41,7 @@ O projeto permite criar, consultar, atualizar e excluir chamados, armazenando os
 - Executar testes HTTP com MockMvc
 - Vincular chamados a solicitantes por ID
 - Filtrar chamados por solicitante
+- Validar a existência do solicitante na Users API antes de criar um chamado
 
 ## Estrutura
 
@@ -191,6 +192,18 @@ GET /chamados?solicitanteId=1
 - `dataInicio` e `dataFim`: datas ISO, por exemplo `2026-09-09T18:00:00`.
 - `solicitanteId`: ID do usuário que abriu o chamado.
 
+## Integração com Users API
+
+Antes de criar um chamado, a API consulta `GET /usuarios/{id}` na Users API.
+
+- Usuário existente: o chamado é criado.
+- Usuário inexistente: a API retorna `404 Not Found`.
+- A API de chamados armazena somente `solicitanteId`; ela não acessa diretamente o banco da Users API.
+
+Para testar localmente, inicie a Users API em `http://localhost:8081`.
+
+Ao executar a API de chamados com Docker Compose, a variável `USERS_API_URL` já está configurada para acessar a aplicação hospedada no Windows por `http://host.docker.internal:8081`.
+
 ## Exemplo de criação
 
 Requisição:
@@ -246,3 +259,4 @@ Os testes utilizam um banco H2 em memória. Portanto, não precisam da senha do 
 - O H2 isola o ambiente de testes do banco utilizado pela aplicação.
 - O Maven Wrapper mantém uma versão consistente do Maven entre ambientes.
 - O chamado armazena `solicitanteId`, sem chave estrangeira para a Users API, pois cada API mantém seu próprio banco de dados.
+- A validação do solicitante ocorre por HTTP com `UsersApiClient`, preservando a independência entre os bancos de dados.
