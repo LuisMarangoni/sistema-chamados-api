@@ -231,4 +231,26 @@ class ChamadoServiceTest {
                 .save(any(HistoricoStatusChamado.class));
     }
 
+    @Test
+    void deveCalcularResumoDosChamados() {
+        when(chamadoRepository.count()).thenReturn(5L);
+        when(chamadoRepository.countByStatus(StatusChamado.ABERTO))
+                .thenReturn(2L);
+        when(chamadoRepository.countByStatus(StatusChamado.EM_ANDAMENTO))
+                .thenReturn(1L);
+        when(chamadoRepository.countByStatus(StatusChamado.RESOLVIDO))
+                .thenReturn(1L);
+        when(chamadoRepository.countByStatus(StatusChamado.FECHADO))
+                .thenReturn(1L);
+
+        ResumoChamadosResponse resultado =
+                chamadoService.resumo();
+
+        assertEquals(5, resultado.total());
+        assertEquals(2, resultado.abertos());
+        assertEquals(1, resultado.emAndamento());
+        assertEquals(1, resultado.resolvidos());
+        assertEquals(1, resultado.fechados());
+    }
+
 }

@@ -74,6 +74,11 @@ public class ChamadoController {
 
     }
 
+    @GetMapping("/resumo")
+    public ResumoChamadosResponse resumo() {
+        return chamadoService.resumo();
+    }
+
     @GetMapping("/{id}")
      public ResponseEntity<Chamado> buscarPorId(@PathVariable Long id) {
         Optional<Chamado> resultado = chamadoService.buscarPorId(id);

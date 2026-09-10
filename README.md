@@ -43,6 +43,7 @@ O projeto permite criar, consultar, atualizar e excluir chamados, armazenando os
 - Filtrar chamados por solicitante
 - Validar a existência do solicitante na Users API antes de criar um chamado
 - Registrar e consultar o histórico de alterações de status
+- Consultar resumo quantitativo dos chamados por status
 
 ## Estrutura
 
@@ -171,6 +172,7 @@ Com a aplicação em execução:
 | `PATCH` | `/chamados/{id}/status` | Atualiza somente o status |
 | `GET` | `/chamados/{id}/historico` | Lista o histórico de status do chamado |
 | `DELETE` | `/chamados/{id}` | Exclui um chamado |
+| `GET` | `/chamados/resumo` | Retorna a quantidade de chamados por status |
 
 ## Paginação e filtros
 
@@ -193,6 +195,14 @@ GET /chamados?solicitanteId=1
 - `prioridade`: `BAIXA`, `MEDIA`, `ALTA` ou `URGENTE`.
 - `dataInicio` e `dataFim`: datas ISO, por exemplo `2026-09-09T18:00:00`.
 - `solicitanteId`: ID do usuário que abriu o chamado.
+
+## Resumo dos chamados
+
+O endpoint retorna a quantidade total de chamados e a distribuição por status:
+
+```http
+GET /chamados/resumo
+```
 
 ## Histórico de status
 

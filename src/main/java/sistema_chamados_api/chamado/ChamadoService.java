@@ -50,6 +50,16 @@ public class ChamadoService {
         return chamadoRepository.findAll(filtros, pageable);
     }
 
+    public ResumoChamadosResponse resumo() {
+        return new ResumoChamadosResponse(
+                chamadoRepository.count(),
+                chamadoRepository.countByStatus(StatusChamado.ABERTO),
+                chamadoRepository.countByStatus(StatusChamado.EM_ANDAMENTO),
+                chamadoRepository.countByStatus(StatusChamado.RESOLVIDO),
+                chamadoRepository.countByStatus(StatusChamado.FECHADO)
+        );
+    }
+
     public Optional<Chamado> buscarPorId(Long id) {
         return chamadoRepository.findById(id);
     }

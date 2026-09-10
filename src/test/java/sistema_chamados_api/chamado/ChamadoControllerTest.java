@@ -211,4 +211,24 @@ class ChamadoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void deveRetornarResumoDosChamados() throws Exception {
+        when(chamadoService.resumo())
+                .thenReturn(new ResumoChamadosResponse(
+                        5,
+                        2,
+                        1,
+                        1,
+                        1
+                ));
+
+        mockMvc.perform(get("/chamados/resumo"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(5))
+                .andExpect(jsonPath("$.abertos").value(2))
+                .andExpect(jsonPath("$.emAndamento").value(1))
+                .andExpect(jsonPath("$.resolvidos").value(1))
+                .andExpect(jsonPath("$.fechados").value(1));
+    }
+
 }
