@@ -20,6 +20,8 @@ O projeto permite criar, consultar, atualizar e excluir chamados, armazenando os
 - Mockito
 - H2 para testes
 - Maven
+- Docker
+- Docker Compose
 
 ## Funcionalidades
 
@@ -33,6 +35,10 @@ O projeto permite criar, consultar, atualizar e excluir chamados, armazenando os
 - Retornar erros de validação
 - Persistir dados no PostgreSQL
 - Documentar os endpoints com OpenAPI
+- Paginar e ordenar chamados
+- Filtrar chamados por status, prioridade e período de criação
+- Executar API e PostgreSQL com Docker Compose
+- Executar testes HTTP com MockMvc
 
 ## Estrutura
 
@@ -50,8 +56,49 @@ A aplicação está dividida em responsabilidades:
 - Java 21
 - PostgreSQL
 - Git
+- Docker Desktop (para execução com containers)
 
 Não é necessário instalar o Maven, pois o projeto possui Maven Wrapper.
+
+## Executando com Docker
+
+A forma recomendada de executar o projeto é com Docker Compose. Ele inicia a API e um PostgreSQL isolado, sem utilizar o banco instalado localmente.
+
+Crie um arquivo `.env` na raiz do projeto com base no `.env.example`:
+
+```text
+DB_PASSWORD=defina_uma_senha_segura
+```
+
+Não envie o arquivo `.env` ao GitHub. Ele contém a senha local do banco Docker e já está ignorado pelo Git.
+
+Inicie o ambiente:
+
+```powershell
+docker compose up --build
+```
+
+A API ficará disponível em:
+
+```text
+http://localhost:8080
+```
+
+O PostgreSQL Docker ficará disponível para acesso externo na porta `5433`:
+
+```text
+Host: localhost
+Porta: 5433
+Banco: sistema_chamados
+Usuário: chamados_app
+```
+
+Para encerrar os containers sem apagar os dados:
+
+```powershell
+docker compose down
+```
+
 
 ## Banco de dados
 
@@ -119,6 +166,26 @@ Com a aplicação em execução:
 | `PUT` | `/chamados/{id}` | Atualiza os dados do chamado |
 | `PATCH` | `/chamados/{id}/status` | Atualiza somente o status |
 | `DELETE` | `/chamados/{id}` | Exclui um chamado |
+
+## Paginação e filtros
+
+O endpoint de listagem aceita paginação, ordenação e filtros opcionais.
+
+```http
+GET /chamados?page=0&size=10&sort=dataCriacao,desc
+GET /chamados?status=ABERTO
+GET /chamados?prioridade=ALTA
+GET /chamados?status=ABERTO&prioridade=ALTA
+GET /chamados?dataInicio=2026-01-01T00:00:00
+GET /chamados?dataFim=2026-12-31T23:59:59
+```
+
+- `page`: número da página, iniciado em `0`.
+- `size`: quantidade de itens por página.
+- `sort`: campo e direção da ordenação.
+- `status`: `ABERTO`, `EM_ANDAMENTO`, `RESOLVIDO` ou `FECHADO`.
+- `prioridade`: `BAIXA`, `MEDIA`, `ALTA` ou `URGENTE`.
+- `dataInicio` e `dataFim`: datas ISO, por exemplo `2026-09-09T18:00:00`.
 
 ## Exemplo de criação
 
