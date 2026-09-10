@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import org.springframework.format.annotation.DateTimeFormat;
-
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -81,6 +81,19 @@ public class ChamadoController {
         if (resultado.isPresent()) {
             return ResponseEntity.ok(resultado.get());
         }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/historico")
+    public ResponseEntity<List<HistoricoStatusChamado>>
+    listarHistorico(@PathVariable Long id) {
+        Optional<List<HistoricoStatusChamado>> resultado =
+                chamadoService.listarHistorico(id);
+
+        if (resultado.isPresent()) {
+            return ResponseEntity.ok(resultado.get());
+        }
+
         return ResponseEntity.notFound().build();
     }
 

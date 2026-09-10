@@ -20,6 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.doThrow;
 import sistema_chamados_api.infra.UsersApiIndisponivelException;
+import java.util.Optional;
+
 
 
 @WebMvcTest(ChamadoController.class)
@@ -176,6 +178,37 @@ class ChamadoControllerTest {
                 .andExpect(status().is(422))
                 .andExpect(jsonPath("$.detail")
                         .value("Solicitante com ID 1 está inativo"));
+    }
+
+    @Test
+    void deveListarHistoricoDoChamado() throws Exception {
+        HistoricoStatusChamado historico =
+                new HistoricoStatusChamado(
+                        1L,
+                        StatusChamado.ABERTO,
+                        StatusChamado.EM_ANDAMENTO
+                );
+
+        when(chamadoService.listarHistorico(1L))
+                .thenReturn(Optional.of(List.of(historico)));
+
+        mockMvc.perform(get("/chamados/1/historico"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].chamadoId").value(1))
+                .andExpect(jsonPath("$[0].statusAnterior")
+                        .value("ABERTO"))
+                .andExpect(jsonPath("$[0].statusNovo")
+                        .value("EM_ANDAMENTO"));
+    }
+
+    @Test
+    void deveRetornarNotFoundAoListarHistoricoDeChamadoInexistente()
+            throws Exception {
+        when(chamadoService.listarHistorico(999L))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/chamados/999/historico"))
+                .andExpect(status().isNotFound());
     }
 
 }

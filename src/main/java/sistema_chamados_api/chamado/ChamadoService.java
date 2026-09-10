@@ -7,19 +7,28 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+
+
 
 @Service
 public class ChamadoService {
 
     private final ChamadoRepository chamadoRepository;
     private final UsersApiClient usersApiClient;
+    private final HistoricoStatusChamadoRepository
+            historicoStatusChamadoRepository;
 
     public ChamadoService(
             ChamadoRepository chamadoRepository,
-            UsersApiClient usersApiClient
+            UsersApiClient usersApiClient,
+            HistoricoStatusChamadoRepository historicoStatusChamadoRepository
     ) {
         this.chamadoRepository = chamadoRepository;
         this.usersApiClient = usersApiClient;
+        this.historicoStatusChamadoRepository =
+                historicoStatusChamadoRepository;
     }
 
     public Page<Chamado> listar(
@@ -45,8 +54,27 @@ public class ChamadoService {
         return chamadoRepository.findById(id);
     }
 
+    public Optional<List<HistoricoStatusChamado>> listarHistorico(
+            Long chamadoId
+    ) {
+        if (!chamadoRepository.existsById(chamadoId)) {
+            return Optional.empty();
+        }
 
-    public Optional<Chamado> atualizarStatus(Long id, StatusChamado novoStatus) {
+        List<HistoricoStatusChamado> historico =
+                historicoStatusChamadoRepository
+                        .findByChamadoIdOrderByDataAlteracaoAsc(
+                                chamadoId
+                        );
+
+        return Optional.of(historico);
+    }
+
+    @Transactional
+    public Optional<Chamado> atualizarStatus(
+            Long id,
+            StatusChamado novoStatus
+    ) {
         Optional<Chamado> resultado = buscarPorId(id);
 
         if (resultado.isEmpty()) {
@@ -54,13 +82,30 @@ public class ChamadoService {
         }
 
         Chamado chamado = resultado.get();
+        StatusChamado statusAnterior = chamado.getStatus();
+
         chamado.atualizarStatus(novoStatus);
 
-        return Optional.of(chamadoRepository.save(chamado));
+        Chamado chamadoAtualizado = chamadoRepository.save(chamado);
+
+        if (statusAnterior != novoStatus) {
+            HistoricoStatusChamado historico =
+                    new HistoricoStatusChamado(
+                            chamadoAtualizado.getId(),
+                            statusAnterior,
+                            novoStatus
+                    );
+
+            historicoStatusChamadoRepository.save(historico);
+        }
+
+        return Optional.of(chamadoAtualizado);
     }
 
+    @Transactional
     public Chamado criar(CriarChamadoRequest request) {
         usersApiClient.validarSolicitante(request.solicitanteId());
+
         Chamado chamado = new Chamado(
                 request.titulo(),
                 request.descricao(),
@@ -68,7 +113,18 @@ public class ChamadoService {
                 request.solicitanteId()
         );
 
-        return chamadoRepository.save(chamado);
+        Chamado chamadoSalvo = chamadoRepository.save(chamado);
+
+        HistoricoStatusChamado historico =
+                new HistoricoStatusChamado(
+                        chamadoSalvo.getId(),
+                        null,
+                        StatusChamado.ABERTO
+                );
+
+        historicoStatusChamadoRepository.save(historico);
+
+        return chamadoSalvo;
     }
 
     public boolean excluir(Long id) {

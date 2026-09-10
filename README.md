@@ -42,6 +42,7 @@ O projeto permite criar, consultar, atualizar e excluir chamados, armazenando os
 - Vincular chamados a solicitantes por ID
 - Filtrar chamados por solicitante
 - Validar a existência do solicitante na Users API antes de criar um chamado
+- Registrar e consultar o histórico de alterações de status
 
 ## Estrutura
 
@@ -168,6 +169,7 @@ Com a aplicação em execução:
 | `GET` | `/chamados/{id}` | Busca um chamado por ID |
 | `PUT` | `/chamados/{id}` | Atualiza os dados do chamado |
 | `PATCH` | `/chamados/{id}/status` | Atualiza somente o status |
+| `GET` | `/chamados/{id}/historico` | Lista o histórico de status do chamado |
 | `DELETE` | `/chamados/{id}` | Exclui um chamado |
 
 ## Paginação e filtros
@@ -191,6 +193,22 @@ GET /chamados?solicitanteId=1
 - `prioridade`: `BAIXA`, `MEDIA`, `ALTA` ou `URGENTE`.
 - `dataInicio` e `dataFim`: datas ISO, por exemplo `2026-09-09T18:00:00`.
 - `solicitanteId`: ID do usuário que abriu o chamado.
+
+## Histórico de status
+
+Cada chamado registra um evento ao ser criado (`null → ABERTO`) e uma nova entrada sempre que o status realmente muda.
+
+```http
+GET /chamados/{id}/historico
+```
+
+O histórico é retornado em ordem cronológica e informa:
+
+- status anterior;
+- status novo;
+- data da alteração.
+
+Um chamado inexistente retorna `404 Not Found`. Solicitar o mesmo status atual não cria um evento duplicado.
 
 ## Integração com Users API
 
@@ -264,3 +282,4 @@ Os testes utilizam um banco H2 em memória. Portanto, não precisam da senha do 
 - A validação do solicitante ocorre por HTTP com `UsersApiClient`, preservando a independência entre os bancos de dados.
 - A Users API informa se o solicitante está ativo; chamados só podem ser criados para usuários ativos.
 - Falhas de conexão ou respostas de erro da Users API são convertidas em `503 Service Unavailable`, evitando a criação de chamados sem solicitante validado.
+- O histórico de status é persistido em tabela própria e consultado em ordem cronológica; alterações repetidas para o mesmo status não criam novos eventos.

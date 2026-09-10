@@ -38,6 +38,10 @@ class ChamadoServiceTest {
     private ChamadoRepository chamadoRepository;
 
     @Mock
+    private HistoricoStatusChamadoRepository
+            historicoStatusChamadoRepository;
+
+    @Mock
     private UsersApiClient usersApiClient;
 
     @InjectMocks
@@ -64,6 +68,8 @@ class ChamadoServiceTest {
         assertNotNull(resultado.getDataCriacao());
 
         verify(chamadoRepository).save(any(Chamado.class));
+        verify(historicoStatusChamadoRepository)
+                .save(any(HistoricoStatusChamado.class));
         verify(usersApiClient).validarSolicitante(1L);
     }
 
@@ -109,6 +115,8 @@ class ChamadoServiceTest {
 
         verify(chamadoRepository).findById(1L);
         verify(chamadoRepository).save(chamado);
+        verify(historicoStatusChamadoRepository)
+                .save(any(HistoricoStatusChamado.class));
     }
 
     @Test
@@ -194,6 +202,33 @@ class ChamadoServiceTest {
         );
 
         verify(chamadoRepository, never()).save(any(Chamado.class));
+    }
+
+    @Test
+    void naoDeveRegistrarHistoricoQuandoStatusNaoMudar() {
+        Chamado chamado = new Chamado(
+                "Erro de rede",
+                "Usuário sem acesso à internet",
+                PrioridadeChamado.ALTA,
+                1L
+        );
+
+        when(chamadoRepository.findById(1L))
+                .thenReturn(Optional.of(chamado));
+
+        when(chamadoRepository.save(chamado))
+                .thenReturn(chamado);
+
+        Optional<Chamado> resultado =
+                chamadoService.atualizarStatus(
+                        1L,
+                        StatusChamado.ABERTO
+                );
+
+        assertTrue(resultado.isPresent());
+
+        verify(historicoStatusChamadoRepository, never())
+                .save(any(HistoricoStatusChamado.class));
     }
 
 }
