@@ -48,4 +48,15 @@ public class TratadorGlobalDeErros {
         );
     }
 
+    @ExceptionHandler(UsersApiIndisponivelException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ProblemDetail tratarUsersApiIndisponivel(
+            UsersApiIndisponivelException exception
+    ) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                exception.getMessage()
+        );
+    }
+
 }

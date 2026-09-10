@@ -17,7 +17,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
+import sistema_chamados_api.infra.UsersApiIndisponivelException;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.eq;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -146,6 +150,29 @@ class ChamadoServiceTest {
                 any(Specification.class),
                 eq(pageable)
         );
+    }
+
+    @Test
+    void naoDeveSalvarChamadoQuandoUsersApiEstiverIndisponivel() {
+        CriarChamadoRequest request = new CriarChamadoRequest(
+                "Teste de indisponibilidade",
+                "Não deve salvar sem validar solicitante",
+                PrioridadeChamado.ALTA,
+                1L
+        );
+
+        doThrow(new UsersApiIndisponivelException(
+                new RuntimeException("Falha de conexão")
+        ))
+                .when(usersApiClient)
+                .validarSolicitante(1L);
+
+        assertThrows(
+                UsersApiIndisponivelException.class,
+                () -> chamadoService.criar(request)
+        );
+
+        verify(chamadoRepository, never()).save(any(Chamado.class));
     }
 
 }

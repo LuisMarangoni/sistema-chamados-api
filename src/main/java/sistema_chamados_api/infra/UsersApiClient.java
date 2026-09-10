@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import sistema_chamados_api.chamado.SolicitanteNaoEncontradoException;
+import org.springframework.web.client.RestClientException;
+
+
 
 @Component
 public class UsersApiClient {
@@ -17,17 +20,23 @@ public class UsersApiClient {
     }
 
     public void validarSolicitante(Long solicitanteId) {
-        restClient.get()
-                .uri("/usuarios/{id}", solicitanteId)
-                .retrieve()
-                .onStatus(
-                        status -> status.value() == 404,
-                        (request, response) -> {
-                            throw new SolicitanteNaoEncontradoException(
-                                    solicitanteId
-                            );
-                        }
-                )
-                .toBodilessEntity();
+        try {
+            restClient.get()
+                    .uri("/usuarios/{id}", solicitanteId)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.value() == 404,
+                            (request, response) -> {
+                                throw new SolicitanteNaoEncontradoException(
+                                        solicitanteId
+                                );
+                            }
+                    )
+                    .toBodilessEntity();
+        }
+        catch (RestClientException exception) {
+            throw new UsersApiIndisponivelException(exception);
+        }
     }
+
 }

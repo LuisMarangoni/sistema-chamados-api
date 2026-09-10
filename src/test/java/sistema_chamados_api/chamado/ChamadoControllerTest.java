@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.doThrow;
-
+import sistema_chamados_api.infra.UsersApiIndisponivelException;
 
 
 @WebMvcTest(ChamadoController.class)
@@ -126,6 +126,32 @@ class ChamadoControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail")
                         .value("Solicitante com ID 999 não foi encontrado"));
+    }
+
+    @Test
+    void deveRetornarServiceUnavailableQuandoUsersApiFalhar()
+            throws Exception {
+        doThrow(new UsersApiIndisponivelException(
+                new RuntimeException("Falha de conexão")
+        ))
+                .when(chamadoService)
+                .criar(any(CriarChamadoRequest.class));
+
+        mockMvc.perform(
+                        post("/chamados")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                {
+                                  "titulo": "Erro de rede",
+                                  "descricao": "Usuário sem acesso à internet",
+                                  "prioridade": "ALTA",
+                                  "solicitanteId": 1
+                                }
+                                """)
+                )
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail")
+                        .value("Users API está indisponível"));
     }
 
 }
