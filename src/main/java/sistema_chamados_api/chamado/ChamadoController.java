@@ -46,6 +46,9 @@ public class ChamadoController {
             PrioridadeChamado prioridade,
 
             @RequestParam(required = false)
+            Long solicitanteId,
+
+            @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDateTime dataInicio,
 
@@ -63,6 +66,7 @@ public class ChamadoController {
         return chamadoService.listar(
                 status,
                 prioridade,
+                solicitanteId,
                 dataInicio,
                 dataFim,
                 pageable

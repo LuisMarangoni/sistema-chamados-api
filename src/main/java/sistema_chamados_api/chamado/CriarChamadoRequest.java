@@ -17,6 +17,10 @@ public record CriarChamadoRequest(
         String descricao,
 
         @NotNull(message = "A prioridade é obrigatória")
-        PrioridadeChamado prioridade
+        PrioridadeChamado prioridade,
+
+        @NotNull(message = "O solicitante é obrigatório")
+        Long solicitanteId
 ) {
+
 }

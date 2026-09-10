@@ -41,6 +41,9 @@ public class Chamado {
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
+    @Column(name = "solicitante_id")
+    private Long solicitanteId;
+
     public StatusChamado getStatus() {
         return status;
     }
@@ -53,16 +56,22 @@ public class Chamado {
         return dataCriacao;
     }
 
+    public Long getSolicitanteId() {
+        return solicitanteId;
+    }
+
     public Chamado(
             String titulo,
             String descricao,
-            PrioridadeChamado prioridade
+            PrioridadeChamado prioridade,
+            Long solicitanteId
     ) {
         this.titulo = titulo;
         this.descricao = descricao;
         this.status = StatusChamado.ABERTO;
         this.prioridade = prioridade;
         this.dataCriacao = LocalDateTime.now();
+        this.solicitanteId = solicitanteId;
     }
 
     public Long getId() {

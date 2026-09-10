@@ -41,7 +41,8 @@ class ChamadoServiceTest {
         CriarChamadoRequest request = new CriarChamadoRequest(
                 "Computador não liga",
                 "Equipamento não apresenta sinal",
-                PrioridadeChamado.ALTA
+                PrioridadeChamado.ALTA,
+                1L
         );
 
         when(chamadoRepository.save(any(Chamado.class)))
@@ -76,7 +77,8 @@ class ChamadoServiceTest {
         Chamado chamado = new Chamado(
                 "Sistema indisponível",
                 "Usuário não consegue acessar",
-                PrioridadeChamado.URGENTE
+                PrioridadeChamado.URGENTE,
+                1L
         );
 
         when(chamadoRepository.findById(1L))
@@ -108,7 +110,8 @@ class ChamadoServiceTest {
         Chamado chamado = new Chamado(
                 "Erro de rede",
                 "Usuário sem acesso à internet",
-                PrioridadeChamado.ALTA
+                PrioridadeChamado.ALTA,
+                1L
         );
 
         Page<Chamado> paginaEsperada = new PageImpl<>(
@@ -123,6 +126,7 @@ class ChamadoServiceTest {
         )).thenReturn(paginaEsperada);
 
         Page<Chamado> resultado = chamadoService.listar(
+                null,
                 null,
                 null,
                 null,

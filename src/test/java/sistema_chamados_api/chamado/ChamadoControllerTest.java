@@ -8,9 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import java.util.List;
-
+import org.springframework.http.MediaType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -33,7 +33,8 @@ class ChamadoControllerTest {
         Chamado chamado = new Chamado(
                 "Erro de rede",
                 "Usuário sem acesso à internet",
-                PrioridadeChamado.ALTA
+                PrioridadeChamado.ALTA,
+                1L
         );
 
         PageImpl<Chamado> pagina = new PageImpl<>(
@@ -45,6 +46,7 @@ class ChamadoControllerTest {
         when(chamadoService.listar(
                 eq(StatusChamado.ABERTO),
                 eq(PrioridadeChamado.ALTA),
+                eq(1L),
                 isNull(),
                 isNull(),
                 any(Pageable.class)
@@ -54,6 +56,7 @@ class ChamadoControllerTest {
                         get("/chamados")
                                 .param("status", "ABERTO")
                                 .param("prioridade", "ALTA")
+                                .param("solicitanteId", "1")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].titulo")
@@ -62,6 +65,8 @@ class ChamadoControllerTest {
                         .value("ALTA"))
                 .andExpect(jsonPath("$.content[0].status")
                         .value("ABERTO"))
+                .andExpect(jsonPath("$.content[0].solicitanteId")
+                        .value(1))
                 .andExpect(jsonPath("$.totalElements")
                         .value(1));
     }
@@ -75,4 +80,25 @@ class ChamadoControllerTest {
                 )
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void deveRetornarBadRequestQuandoSolicitanteNaoForInformado()
+            throws Exception {
+        mockMvc.perform(
+                        post("/chamados")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                      "titulo": "Erro de rede",
+                                      "descricao": "Usuário sem acesso à internet",
+                                      "prioridade": "ALTA"
+                                    }
+                                    """)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.campos.solicitanteId")
+                        .value("O solicitante é obrigatório"));
+    }
+
 }

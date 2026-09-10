@@ -22,13 +22,15 @@ class ChamadoRepositoryTest {
         Chamado chamadoAlta = new Chamado(
                 "Servidor indisponível",
                 "Servidor não responde",
-                PrioridadeChamado.ALTA
+                PrioridadeChamado.ALTA,
+                1L
         );
 
         Chamado chamadoMedia = new Chamado(
                 "Impressora offline",
                 "Impressora não responde",
-                PrioridadeChamado.MEDIA
+                PrioridadeChamado.MEDIA,
+                1L
         );
 
         chamadoRepository.saveAll(
@@ -68,7 +70,8 @@ class ChamadoRepositoryTest {
         Chamado chamado = new Chamado(
                 "Falha no servidor",
                 "Serviço indisponível",
-                PrioridadeChamado.URGENTE
+                PrioridadeChamado.URGENTE,
+                1L
         );
 
         chamadoRepository.saveAndFlush(chamado);
@@ -90,6 +93,41 @@ class ChamadoRepositoryTest {
         assertEquals(
                 "Falha no servidor",
                 resultado.getContent().getFirst().getTitulo()
+        );
+    }
+
+    @Test
+    void deveFiltrarChamadosPorSolicitante() {
+        Chamado chamadoDoSolicitanteUm = new Chamado(
+                "Erro de rede",
+                "Sem acesso à internet",
+                PrioridadeChamado.ALTA,
+                1L
+        );
+
+        Chamado chamadoDoSolicitanteDois = new Chamado(
+                "Impressora offline",
+                "Equipamento não imprime",
+                PrioridadeChamado.MEDIA,
+                2L
+        );
+
+        chamadoRepository.saveAll(
+                List.of(
+                        chamadoDoSolicitanteUm,
+                        chamadoDoSolicitanteDois
+                )
+        );
+
+        Page<Chamado> resultado = chamadoRepository.findAll(
+                ChamadoSpecifications.comSolicitanteId(1L),
+                PageRequest.of(0, 10)
+        );
+
+        assertEquals(1, resultado.getTotalElements());
+        assertEquals(
+                1L,
+                resultado.getContent().getFirst().getSolicitanteId()
         );
     }
 

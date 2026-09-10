@@ -20,6 +20,7 @@ public class ChamadoService {
     public Page<Chamado> listar(
             StatusChamado status,
             PrioridadeChamado prioridade,
+            Long solicitanteId,
             LocalDateTime dataInicio,
             LocalDateTime dataFim,
             Pageable pageable
@@ -27,6 +28,7 @@ public class ChamadoService {
         Specification<Chamado> filtros = Specification.allOf(
                 ChamadoSpecifications.comStatus(status),
                 ChamadoSpecifications.comPrioridade(prioridade),
+                ChamadoSpecifications.comSolicitanteId(solicitanteId),
                 ChamadoSpecifications.criadoAPartirDe(dataInicio),
                 ChamadoSpecifications.criadoAte(dataFim)
         );
@@ -56,7 +58,8 @@ public class ChamadoService {
         Chamado chamado = new Chamado(
                 request.titulo(),
                 request.descricao(),
-                request.prioridade()
+                request.prioridade(),
+                request.solicitanteId()
         );
 
         return chamadoRepository.save(chamado);

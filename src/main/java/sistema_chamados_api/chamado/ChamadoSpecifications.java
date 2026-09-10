@@ -63,4 +63,18 @@ public final class ChamadoSpecifications {
                 );
     }
 
+    public static Specification<Chamado> comSolicitanteId(
+            Long solicitanteId
+    ) {
+        if (solicitanteId == null) {
+            return Specification.unrestricted();
+        }
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(
+                        root.get("solicitanteId"),
+                        solicitanteId
+                );
+    }
+
 }
