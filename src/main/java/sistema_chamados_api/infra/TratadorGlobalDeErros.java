@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.ProblemDetail;
 import sistema_chamados_api.chamado.SolicitanteNaoEncontradoException;
-
+import sistema_chamados_api.chamado.SolicitanteInativoException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -44,6 +44,17 @@ public class TratadorGlobalDeErros {
     ) {
         return ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND,
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(SolicitanteInativoException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+    public ProblemDetail tratarSolicitanteInativo(
+            SolicitanteInativoException exception
+    ) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_CONTENT,
                 exception.getMessage()
         );
     }

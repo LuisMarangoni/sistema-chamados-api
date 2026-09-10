@@ -198,6 +198,7 @@ Antes de criar um chamado, a API consulta `GET /usuarios/{id}` na Users API.
 
 - Usuário existente: o chamado é criado.
 - Usuário inexistente: a API retorna `404 Not Found`.
+- Usuário inativo: a API retorna `422 Unprocessable Content` e não cria o chamado.
 - A API de chamados armazena somente `solicitanteId`; ela não acessa diretamente o banco da Users API.
 - Users API indisponível ou com falha: a API retorna `503 Service Unavailable` e não cria o chamado.
 
@@ -261,4 +262,5 @@ Os testes utilizam um banco H2 em memória. Portanto, não precisam da senha do 
 - O Maven Wrapper mantém uma versão consistente do Maven entre ambientes.
 - O chamado armazena `solicitanteId`, sem chave estrangeira para a Users API, pois cada API mantém seu próprio banco de dados.
 - A validação do solicitante ocorre por HTTP com `UsersApiClient`, preservando a independência entre os bancos de dados.
+- A Users API informa se o solicitante está ativo; chamados só podem ser criados para usuários ativos.
 - Falhas de conexão ou respostas de erro da Users API são convertidas em `503 Service Unavailable`, evitando a criação de chamados sem solicitante validado.

@@ -154,4 +154,28 @@ class ChamadoControllerTest {
                         .value("Users API está indisponível"));
     }
 
+    @Test
+    void deveRetornarUnprocessableContentQuandoSolicitanteEstiverInativo()
+            throws Exception {
+        doThrow(new SolicitanteInativoException(1L))
+                .when(chamadoService)
+                .criar(any(CriarChamadoRequest.class));
+
+        mockMvc.perform(
+                        post("/chamados")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                {
+                                  "titulo": "Erro de rede",
+                                  "descricao": "Usuário sem acesso à internet",
+                                  "prioridade": "ALTA",
+                                  "solicitanteId": 1
+                                }
+                                """)
+                )
+                .andExpect(status().is(422))
+                .andExpect(jsonPath("$.detail")
+                        .value("Solicitante com ID 1 está inativo"));
+    }
+
 }

@@ -175,4 +175,25 @@ class ChamadoServiceTest {
         verify(chamadoRepository, never()).save(any(Chamado.class));
     }
 
+    @Test
+    void naoDeveSalvarChamadoQuandoSolicitanteEstiverInativo() {
+        CriarChamadoRequest request = new CriarChamadoRequest(
+                "Teste de solicitante inativo",
+                "Não deve salvar chamado para usuário inativo",
+                PrioridadeChamado.ALTA,
+                1L
+        );
+
+        doThrow(new SolicitanteInativoException(1L))
+                .when(usersApiClient)
+                .validarSolicitante(1L);
+
+        assertThrows(
+                SolicitanteInativoException.class,
+                () -> chamadoService.criar(request)
+        );
+
+        verify(chamadoRepository, never()).save(any(Chamado.class));
+    }
+
 }

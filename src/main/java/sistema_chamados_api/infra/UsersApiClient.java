@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import sistema_chamados_api.chamado.SolicitanteNaoEncontradoException;
 import org.springframework.web.client.RestClientException;
-
+import sistema_chamados_api.chamado.SolicitanteInativoException;
 
 
 @Component
@@ -21,7 +21,7 @@ public class UsersApiClient {
 
     public void validarSolicitante(Long solicitanteId) {
         try {
-            restClient.get()
+            UsuarioResumoResponse usuario = restClient.get()
                     .uri("/usuarios/{id}", solicitanteId)
                     .retrieve()
                     .onStatus(
@@ -32,7 +32,11 @@ public class UsersApiClient {
                                 );
                             }
                     )
-                    .toBodilessEntity();
+                    .body(UsuarioResumoResponse.class);
+
+            if (!usuario.ativo()) {
+                throw new SolicitanteInativoException(solicitanteId);
+            }
         }
         catch (RestClientException exception) {
             throw new UsersApiIndisponivelException(exception);
