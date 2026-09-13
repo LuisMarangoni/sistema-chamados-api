@@ -1,5 +1,9 @@
 package sistema_chamados_api.infra;
 
+
+
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -17,39 +21,74 @@ public class UsersApiClient {
     private final String senha;
     private String token;
 
+    @Autowired
     public UsersApiClient(
             @Value("${users-api.url}") String usersApiUrl,
             @Value("${users-api.email}") String email,
             @Value("${users-api.password}") String senha
     ) {
-        this.restClient = RestClient.create(usersApiUrl);
+        this(RestClient.create(usersApiUrl), email, senha);
+    }
+
+    UsersApiClient(RestClient restClient, String email, String senha) {
+        this.restClient = restClient;
         this.email = email;
         this.senha = senha;
     }
 
     public void validarSolicitante(Long solicitanteId) {
         try {
-            UsuarioResumoResponse usuario = restClient.get()
-                    .uri("/usuarios/{id}", solicitanteId)
-                    .header("Authorization", "Bearer " + obterToken())
-                    .retrieve()
-                    .onStatus(
-                            status -> status.value() == 404,
-                            (request, response) -> {
-                                throw new SolicitanteNaoEncontradoException(
-                                        solicitanteId
-                                );
-                            }
-                    )
-                    .body(UsuarioResumoResponse.class);
+            String tokenUsado = obterToken();
+            UsuarioResumoResponse usuario;
+
+            try {
+                usuario = buscarUsuario(solicitanteId, tokenUsado);
+            } catch (HttpClientErrorException.Unauthorized exception) {
+                String novoToken = renovarToken(tokenUsado);
+                usuario = buscarUsuario(solicitanteId, novoToken);
+            }
 
             if (!usuario.ativo()) {
                 throw new SolicitanteInativoException(solicitanteId);
             }
-        }
-        catch (RestClientException exception) {
+        } catch (RestClientException exception) {
             throw new UsersApiIndisponivelException(exception);
         }
+    }
+
+    private UsuarioResumoResponse buscarUsuario(
+            Long solicitanteId,
+            String tokenAcesso
+    ) {
+        UsuarioResumoResponse usuario = restClient.get()
+                .uri("/usuarios/{id}", solicitanteId)
+                .header("Authorization", "Bearer " + tokenAcesso)
+                .retrieve()
+                .onStatus(
+                        status -> status.value() == 404,
+                        (request, response) -> {
+                            throw new SolicitanteNaoEncontradoException(
+                                    solicitanteId
+                            );
+                        }
+                )
+                .body(UsuarioResumoResponse.class);
+
+        if (usuario == null) {
+            throw new RestClientException(
+                    "Users API retornou uma resposta vazia"
+            );
+        }
+
+        return usuario;
+    }
+
+    private synchronized String renovarToken(String tokenRejeitado) {
+        if (Objects.equals(token, tokenRejeitado)) {
+            token = null;
+        }
+
+        return obterToken();
     }
 
     private synchronized String obterToken() {

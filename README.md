@@ -73,9 +73,11 @@ Crie um arquivo `.env` na raiz do projeto com base no `.env.example`:
 
 ```text
 DB_PASSWORD=defina_uma_senha_segura
+USERS_API_EMAIL=email_da_conta_de_integracao
+USERS_API_PASSWORD=senha_da_conta_de_integracao
 ```
 
-Não envie o arquivo `.env` ao GitHub. Ele contém a senha local do banco Docker e já está ignorado pelo Git.
+Não envie o arquivo `.env` ao GitHub. Ele contém as credenciais locais e já está ignorado pelo Git. `USERS_API_EMAIL` e `USERS_API_PASSWORD` correspondem ao login de uma conta ativa da Users API com perfil `SUPORTE` ou `ADMIN`, não ao usuário do PostgreSQL.
 
 Inicie o ambiente:
 
@@ -224,13 +226,27 @@ Um chamado inexistente retorna `404 Not Found`. Solicitar o mesmo status atual n
 
 Antes de criar um chamado, a API consulta `GET /usuarios/{id}` na Users API.
 
-- Usuário existente: o chamado é criado.
+- Usuário existente e ativo: o chamado é criado.
 - Usuário inexistente: a API retorna `404 Not Found`.
 - Usuário inativo: a API retorna `422 Unprocessable Content` e não cria o chamado.
 - A API de chamados armazena somente `solicitanteId`; ela não acessa diretamente o banco da Users API.
 - Users API indisponível ou com falha: a API retorna `503 Service Unavailable` e não cria o chamado.
 
 Para testar localmente, inicie a Users API em `http://localhost:8081`.
+
+### Autenticação e renovação do token
+
+O `UsersApiClient` faz login em `POST /auth/login` usando `USERS_API_EMAIL` e `USERS_API_PASSWORD` e mantém o JWT em memória para reutilizá-lo nas consultas. A conta de integração precisa do perfil `SUPORTE` ou `ADMIN` para acessar `GET /usuarios/{id}`; o perfil `USUARIO` não é suficiente.
+
+Se a consulta retornar `401 Unauthorized`, o cliente descarta o token rejeitado, faz login novamente e repete a consulta **uma única vez**. Caso outra execução já tenha renovado o token, ele reutiliza o token atualizado. Não é utilizado um endpoint de refresh token.
+
+Se a segunda consulta também retornar `401`, a integração encerra a tentativa e a API de chamados responde `503 Service Unavailable`. Outros erros, como `403 Forbidden`, não provocam renovação. Um `401` no próprio login também encerra a tentativa, sem repetir o login indefinidamente.
+
+Se alterar as credenciais no `.env`, recrie o container da API para carregar os novos valores:
+
+```powershell
+docker compose up -d --force-recreate api
+```
 
 Ao executar a API de chamados com Docker Compose, a variável `USERS_API_URL` já está configurada para acessar a aplicação hospedada no Windows por `http://host.docker.internal:8081`.
 
@@ -279,6 +295,12 @@ FECHADO
 ```
 
 Os testes utilizam um banco H2 em memória. Portanto, não precisam da senha do PostgreSQL e não modificam os dados locais.
+
+O `UsersApiClientTest` utiliza `MockRestServiceServer` para simular as respostas HTTP da Users API. Os cenários verificam a renovação após um `401` e o encerramento quando a consulta continua retornando `401` após a renovação. Não é necessário iniciar as APIs, Docker ou fazer login para executá-los:
+
+```powershell
+.\mvnw.cmd "-Dtest=UsersApiClientTest" test
+```
 
 ## Decisões técnicas
 
