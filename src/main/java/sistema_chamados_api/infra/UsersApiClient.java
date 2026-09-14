@@ -109,7 +109,15 @@ public class UsersApiClient {
                     .retrieve()
                     .body(LoginResponse.class);
 
-            token = Objects.requireNonNull(resposta).token();
+            if (resposta == null
+                    || resposta.token() == null
+                    || resposta.token().isBlank()) {
+                throw new RestClientException(
+                        "Users API retornou login sem token válido"
+                );
+            }
+
+            token = resposta.token();
         }
 
         return token;

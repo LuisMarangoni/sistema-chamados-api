@@ -242,6 +242,8 @@ Se a consulta retornar `401 Unauthorized`, o cliente descarta o token rejeitado,
 
 Se a segunda consulta também retornar `401`, a integração encerra a tentativa e a API de chamados responde `503 Service Unavailable`. Outros erros, como `403 Forbidden`, não provocam renovação. Um `401` no próprio login também encerra a tentativa, sem repetir o login indefinidamente.
 
+Uma resposta de login sem corpo ou com token ausente, nulo, vazio ou contendo apenas espaços é tratada como indisponibilidade da integração (`503 Service Unavailable`). Nesse caso, o cliente não armazena o token nem realiza a consulta de usuário. Essa verificação valida a presença do token, não sua assinatura criptográfica.
+
 Se alterar as credenciais no `.env`, recrie o container da API para carregar os novos valores:
 
 ```powershell
@@ -313,7 +315,9 @@ Os testes utilizam um banco H2 em memória. Portanto, não precisam da senha do 
 
 O `UsersApiClientTest` utiliza `MockRestServiceServer` para simular a renovação após um `401` e o encerramento quando a consulta continua retornando `401` após a renovação.
 
-Um terceiro cenário inicia um servidor HTTP temporário em `127.0.0.1`, em uma porta livre, e retém a resposta do login. O teste verifica que a causa original da falha é `SocketTimeoutException`, usando um timeout de leitura de 200 ms exclusivo do teste. O servidor é encerrado ao final, inclusive em caso de falha. Esse cenário valida o timeout de leitura do login, não o timeout de conexão nem a leitura da consulta de usuário.
+Também verifica o tratamento de login com resposta sem corpo e, por meio de um teste parametrizado, token ausente, nulo, vazio ou contendo apenas espaços. As expectativas HTTP garantem que não haja consulta de usuário após essas respostas inválidas.
+
+O cenário de timeout inicia um servidor HTTP temporário em `127.0.0.1`, em uma porta livre, e retém a resposta do login. O teste verifica que a causa original da falha é `SocketTimeoutException`, usando um timeout de leitura de 200 ms exclusivo do teste. O servidor é encerrado ao final, inclusive em caso de falha. Esse cenário valida o timeout de leitura do login, não o timeout de conexão nem a leitura da consulta de usuário.
 
 Não é necessário iniciar as APIs, Docker ou fazer login para executar esses testes:
 

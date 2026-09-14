@@ -6,18 +6,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -194,6 +196,67 @@ class UsersApiClientTest {
             liberarResposta.countDown();
             servidor.stop(0);
         }
+    }
+
+    @Test
+    void deveTratarLoginComRespostaVaziaComoIndisponibilidade() {
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl("http://users-api.test");
+
+        MockRestServiceServer servidor =
+                MockRestServiceServer.bindTo(builder).build();
+
+        UsersApiClient cliente = new UsersApiClient(
+                builder.build(),
+                "integracao@email.com",
+                "senha-ficticia-do-teste"
+        );
+
+        servidor.expect(requestTo("http://users-api.test/auth/login"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.OK));
+
+        assertThrows(
+                UsersApiIndisponivelException.class,
+                () -> cliente.validarSolicitante(3L)
+        );
+
+        servidor.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{}",
+            "{\"tipo\":\"Bearer\",\"token\":null}",
+            "{\"tipo\":\"Bearer\",\"token\":\"\"}",
+            "{\"tipo\":\"Bearer\",\"token\":\"   \"}"
+    })
+    void deveRejeitarLoginSemTokenUtilizavel(String corpoResposta) {
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl("http://users-api.test");
+
+        MockRestServiceServer servidor =
+                MockRestServiceServer.bindTo(builder).build();
+
+        UsersApiClient cliente = new UsersApiClient(
+                builder.build(),
+                "integracao@email.com",
+                "senha-ficticia-do-teste"
+        );
+
+        servidor.expect(requestTo("http://users-api.test/auth/login"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess(
+                        corpoResposta,
+                        MediaType.APPLICATION_JSON
+                ));
+
+        assertThrows(
+                UsersApiIndisponivelException.class,
+                () -> cliente.validarSolicitante(3L)
+        );
+
+        servidor.verify();
     }
 
 }
