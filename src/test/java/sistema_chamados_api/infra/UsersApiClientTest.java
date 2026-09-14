@@ -10,6 +10,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import com.sun.net.httpserver.HttpServer;
+import org.junit.jupiter.api.Timeout;
+
+import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class UsersApiClientTest {
 
@@ -117,6 +128,72 @@ class UsersApiClientTest {
         );
 
         servidor.verify();
+    }
+
+    @Test
+    @Timeout(15)
+    void deveInterromperLoginQuandoRespostaDemorar() throws Exception {
+        CountDownLatch requisicaoRecebida = new CountDownLatch(1);
+        CountDownLatch liberarResposta = new CountDownLatch(1);
+
+        HttpServer servidor = HttpServer.create(
+                new InetSocketAddress("127.0.0.1", 0),
+                0
+        );
+
+        servidor.createContext("/auth/login", exchange -> {
+            try {
+                exchange.getRequestBody().readAllBytes();
+                requisicaoRecebida.countDown();
+
+                // Mantém a conexão aberta, sem enviar uma resposta.
+                liberarResposta.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+            } finally {
+                exchange.close();
+            }
+        });
+
+        servidor.start();
+
+        try {
+            String baseUrl = "http://127.0.0.1:"
+                    + servidor.getAddress().getPort();
+
+            UsersApiClient cliente = new UsersApiClient(
+                    baseUrl,
+                    "integracao@email.com",
+                    "senha-ficticia-do-teste",
+                    1000,
+                    200
+            );
+
+            UsersApiIndisponivelException erro = assertThrows(
+                    UsersApiIndisponivelException.class,
+                    () -> cliente.validarSolicitante(3L)
+            );
+
+            assertTrue(
+                    requisicaoRecebida.await(1, TimeUnit.SECONDS),
+                    "O servidor deveria ter recebido o login"
+            );
+
+            Throwable causaRaiz = erro;
+
+            while (causaRaiz.getCause() != null) {
+                causaRaiz = causaRaiz.getCause();
+            }
+
+            assertInstanceOf(
+                    SocketTimeoutException.class,
+                    causaRaiz,
+                    "A falha deve ser causada por timeout de leitura"
+            );
+        } finally {
+            liberarResposta.countDown();
+            servidor.stop(0);
+        }
     }
 
 }

@@ -1,7 +1,7 @@
 package sistema_chamados_api.infra;
 
 
-
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,9 +25,19 @@ public class UsersApiClient {
     public UsersApiClient(
             @Value("${users-api.url}") String usersApiUrl,
             @Value("${users-api.email}") String email,
-            @Value("${users-api.password}") String senha
+            @Value("${users-api.password}") String senha,
+            @Value("${users-api.connect-timeout-ms:2000}") int connectTimeoutMs,
+            @Value("${users-api.read-timeout-ms:5000}") int readTimeoutMs
     ) {
-        this(RestClient.create(usersApiUrl), email, senha);
+        this(
+                criarRestClient(
+                        usersApiUrl,
+                        connectTimeoutMs,
+                        readTimeoutMs
+                ),
+                email,
+                senha
+        );
     }
 
     UsersApiClient(RestClient restClient, String email, String senha) {
@@ -109,6 +119,29 @@ public class UsersApiClient {
     }
 
     private record LoginResponse(String tipo, String token) {
+    }
+
+    private static RestClient criarRestClient(
+            String baseUrl,
+            int connectTimeoutMs,
+            int readTimeoutMs
+    ) {
+        if (connectTimeoutMs <= 0 || readTimeoutMs <= 0) {
+            throw new IllegalArgumentException(
+                    "Os timeouts da Users API devem ser positivos"
+            );
+        }
+
+        SimpleClientHttpRequestFactory factory =
+                new SimpleClientHttpRequestFactory();
+
+        factory.setConnectTimeout(connectTimeoutMs);
+        factory.setReadTimeout(readTimeoutMs);
+
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(factory)
+                .build();
     }
 
 }

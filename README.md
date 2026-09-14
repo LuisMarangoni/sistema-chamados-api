@@ -250,6 +250,21 @@ docker compose up -d --force-recreate api
 
 Ao executar a API de chamados com Docker Compose, a variável `USERS_API_URL` já está configurada para acessar a aplicação hospedada no Windows por `http://host.docker.internal:8081`.
 
+### Limites de tempo das chamadas HTTP
+
+O cliente utiliza `SimpleClientHttpRequestFactory` com limites configuráveis, aplicados tanto ao login quanto à consulta de usuários:
+
+| Variável de ambiente | Padrão | Finalidade |
+|---|---|---|
+| `USERS_API_CONNECT_TIMEOUT_MS` | `2000` | Limite para estabelecer a conexão, em milissegundos |
+| `USERS_API_READ_TIMEOUT_MS` | `5000` | Limite de espera durante a leitura da resposta, em milissegundos |
+
+Os valores devem ser positivos. Esses limites não representam um prazo total para a operação de criação de chamado, que pode envolver login, consulta e renovação do token.
+
+Um timeout é tratado como indisponibilidade da integração, resultando em `503 Service Unavailable` sem criar o chamado. Não há repetição automática por timeout; a nova tentativa de consulta é exclusiva do tratamento de `401`.
+
+Os padrões estão definidos em `application.properties`. Para personalizar em Docker, passe as variáveis explicitamente ao serviço `api` no `compose.yaml`; adicionar valores apenas ao `.env` do Compose não os injeta automaticamente no container.
+
 ## Exemplo de criação
 
 Requisição:
@@ -296,7 +311,11 @@ FECHADO
 
 Os testes utilizam um banco H2 em memória. Portanto, não precisam da senha do PostgreSQL e não modificam os dados locais.
 
-O `UsersApiClientTest` utiliza `MockRestServiceServer` para simular as respostas HTTP da Users API. Os cenários verificam a renovação após um `401` e o encerramento quando a consulta continua retornando `401` após a renovação. Não é necessário iniciar as APIs, Docker ou fazer login para executá-los:
+O `UsersApiClientTest` utiliza `MockRestServiceServer` para simular a renovação após um `401` e o encerramento quando a consulta continua retornando `401` após a renovação.
+
+Um terceiro cenário inicia um servidor HTTP temporário em `127.0.0.1`, em uma porta livre, e retém a resposta do login. O teste verifica que a causa original da falha é `SocketTimeoutException`, usando um timeout de leitura de 200 ms exclusivo do teste. O servidor é encerrado ao final, inclusive em caso de falha. Esse cenário valida o timeout de leitura do login, não o timeout de conexão nem a leitura da consulta de usuário.
+
+Não é necessário iniciar as APIs, Docker ou fazer login para executar esses testes:
 
 ```powershell
 .\mvnw.cmd "-Dtest=UsersApiClientTest" test
